@@ -1,5 +1,3 @@
-
-
 class Rum:
     def __init__(self, namn, beskrivning):
         self.namn = namn
@@ -8,17 +6,17 @@ class Rum:
         self.val_föremål = {}
 
     def lägg_till_förflyttnings_val(self, val_namn, nästa_rum):
-        self.val[val_namn] = nästa_rum
+        self.val_rum[val_namn] = nästa_rum
     
     def lägg_till_rum_val(self, val_namn, föremål):
-        self.val[val_namn] = föremål
+        self.val_föremål[val_namn] = föremål
 
     def gå_till(self, val_namn):
         return self.val_rum.get(val_namn, None)
     
 
 class Föremål:
-    def __init__(self, namn_föremål, beskrivning_föremål, har):
+    def __init__(self, namn_föremål, beskrivning_föremål):
         self.namn_föremål = namn_föremål
         self.beskrivning_föremål = beskrivning_föremål
         
@@ -29,13 +27,16 @@ start_rum = Rum("Start", "Du är i en mörk cell. Dörren är låst.")
 korridor = Rum("Korridor", "En lång och smal korridor.")
 vakt_rum = Rum("Vaktrum", "Du ser en vakt. Han verkar sova.")
 
+# Skapa nyckel föremål
+nyckel = Föremål("Nyckel", "En rostig nyckel som kanske öppnar dörren.")
+
+# Lägg till nyckel till start rummet
+start_rum.lägg_till_rum_val("ta nyckel", nyckel)
+
 # Variabler för varje val för respektive rum [VAL, RUM]
 
 # start förflyt val
 start_rum.lägg_till_förflyttnings_val("öppna dörr", korridor)
-
-
-
 
 # korrdior förflyt val
 korridor.lägg_till_förflyttnings_val("gå till vaktrum", vakt_rum)
@@ -44,20 +45,34 @@ korridor.lägg_till_förflyttnings_val("gå tillbaka", start_rum)
 # vaktrum förflyt val
 vakt_rum.lägg_till_förflyttnings_val("", vakt_rum)
 
-
 # -------------------------Spel loop------------------------- #
 aktuellt_rum = start_rum
+har_nyckel = False
+
+def print_colored(text, color_code):
+    print(f"\033[{color_code}m{text}\033[0m")
+
 while True:
-    print(f"Du är i: {aktuellt_rum.namn}")
-    print(aktuellt_rum.beskrivning)
-    print("Dina val:")
+    print_colored(f"Du är i: {aktuellt_rum.namn}", "1;34")  # Blå text
+    print_colored(aktuellt_rum.beskrivning, "0;37")  # Vit text
+    print_colored("Dina val:", "1;32")  # Grön text
     for val in aktuellt_rum.val_rum:
-        print(f"- {val}")
+        print_colored(f"- {val}", "0;33")  # Gul text
+    for val in aktuellt_rum.val_föremål:
+        print_colored(f"- {val}", "0;33")  # Gul text
 
     spel_val = input("Vad vill du göra? \n")
-    nästa_rum = aktuellt_rum.gå_till(spel_val)
-    if nästa_rum:
-        aktuellt_rum = nästa_rum
+    
+    if spel_val == "ta nyckel" and "ta nyckel" in aktuellt_rum.val_föremål:
+        har_nyckel = True
+        del aktuellt_rum.val_föremål["ta nyckel"]
+        print_colored("Du tog nyckeln.", "1;32")  # Grön text
+    elif spel_val == "öppna dörr" and not har_nyckel:
+        print_colored("Dörren är låst. Du behöver en nyckel.", "1;31")  # Röd text
     else:
-        print("Ogiltigt val. Försök igen.")
-# -------------------------Spel loop------------------------- #
+        nästa_rum = aktuellt_rum.gå_till(spel_val)
+        if nästa_rum:
+            aktuellt_rum = nästa_rum
+        else:
+            print_colored("Ogiltigt val. Försök igen.", "1;31")  # Röd text
+# -------------------------Spel loop------------------------- #6
