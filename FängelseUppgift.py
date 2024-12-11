@@ -26,6 +26,8 @@ class Föremål:
 start_rum = Rum("Start", "Du är i en mörk cell. Dörren är låst.")
 korridor = Rum("Korridor", "En lång och smal korridor.")
 vakt_rum = Rum("Vaktrum", "Du ser en vakt. Han verkar sova.")
+korridor_2 = Rum("Korridor 2", "Du fortsätter utifrån vaktrummet till ännu en korridor.")
+slut_rum = Rum("slutet", "Du har klarat av spelet")
 
 # Skapa nyckel föremål
 nyckel = Föremål("Nyckel", "En rostig nyckel som kanske öppnar dörren.")
@@ -35,6 +37,7 @@ start_rum.lägg_till_rum_val("ta nyckel", nyckel)
 
 # Variabler för varje val för respektive rum [VAL, RUM]
 
+
 # start förflyt val
 start_rum.lägg_till_förflyttnings_val("öppna dörr", korridor)
 
@@ -43,7 +46,12 @@ korridor.lägg_till_förflyttnings_val("gå till vaktrum", vakt_rum)
 korridor.lägg_till_förflyttnings_val("gå tillbaka", start_rum)
 
 # vaktrum förflyt val
-vakt_rum.lägg_till_förflyttnings_val("", vakt_rum)
+vakt_rum.lägg_till_förflyttnings_val("gå till korridor", korridor_2)
+vakt_rum.lägg_till_förflyttnings_val("gå tillbaka", korridor)
+
+# korridor 2 förflyt val
+korridor_2.lägg_till_förflyttnings_val("gå tillbaka", vakt_rum)
+korridor_2.lägg_till_förflyttnings_val("gå ut", slut_rum)
 
 # -------------------------Spel loop------------------------- #
 aktuellt_rum = start_rum
@@ -53,6 +61,8 @@ def print_colored(text, color_code):
     print(f"\033[{color_code}m{text}\033[0m")
 
 while True:
+    
+    print("\n" + "="*50)
     print_colored(f"Du är i: {aktuellt_rum.namn}", "1;34")  # Blå text
     print_colored(aktuellt_rum.beskrivning, "0;37")  # Vit text
     print_colored("Dina val:", "1;32")  # Grön text
@@ -61,7 +71,7 @@ while True:
     for val in aktuellt_rum.val_föremål:
         print_colored(f"- {val}", "0;33")  # Gul text
 
-    spel_val = input("Vad vill du göra? \n")
+    spel_val = input("\nVad vill du göra? \n")
     
     if spel_val == "ta nyckel" and "ta nyckel" in aktuellt_rum.val_föremål:
         har_nyckel = True
@@ -75,4 +85,4 @@ while True:
             aktuellt_rum = nästa_rum
         else:
             print_colored("Ogiltigt val. Försök igen.", "1;31")  # Röd text
-# -------------------------Spel loop------------------------- #6
+# -------------------------Spel loop------------------------- #
