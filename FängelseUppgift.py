@@ -31,6 +31,7 @@ slut_rum = Rum("slutet", "Du har klarat av spelet")
 
 # Skapa nyckel föremål
 nyckel = Föremål("Nyckel", "En rostig nyckel som kanske öppnar dörren.")
+paper = Föremål("Paper", "En bit paper med en kod på")
 
 # Lägg till nyckel till start rummet
 start_rum.lägg_till_rum_val("ta nyckel", nyckel)
