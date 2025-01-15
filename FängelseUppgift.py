@@ -4,12 +4,16 @@ class Rum:
         self.beskrivning = beskrivning
         self.val_rum = {}  # Lista för förflyt val
         self.val_föremål = {}
+        self.val_sök = {}
 
     def lägg_till_förflyttnings_val(self, val_namn, nästa_rum):
         self.val_rum[val_namn] = nästa_rum
     
     def lägg_till_rum_val(self, val_namn, föremål):
         self.val_föremål[val_namn] = föremål
+
+    def lägg_till_sök_val(self, val_namn):
+        self.val_sök[val_namn] = val_namn
 
     def gå_till(self, val_namn):
         return self.val_rum.get(val_namn, None)
@@ -31,16 +35,17 @@ slut_rum = Rum("slutet", "Du har klarat av spelet")
 
 # Skapa nyckel föremål
 nyckel = Föremål("Nyckel", "En rostig nyckel som kanske öppnar dörren.")
-paper = Föremål("Paper", "En bit paper med en kod på")
+paper = Föremål("papper", "En bit papper med en kod på")
 
 # Lägg till nyckel till start rummet
-start_rum.lägg_till_rum_val("ta nyckel", nyckel)
+
+
+start_rum.lägg_till_sök_val("kolla runt i rummet")
 
 # Variabler för varje val för respektive rum [VAL, RUM]
 
 
-# start förflyt val
-start_rum.lägg_till_förflyttnings_val("öppna dörr", korridor)
+
 
 # korrdior förflyt val
 korridor.lägg_till_förflyttnings_val("gå till vaktrum", vakt_rum)
@@ -71,19 +76,34 @@ while True:
         print_colored(f"- {val}", "0;33")  # Gul text
     for val in aktuellt_rum.val_föremål:
         print_colored(f"- {val}", "0;33")  # Gul text
+    for sök in aktuellt_rum.val_sök:
+        print_colored(f"- {sök}","0;33")
 
     spel_val = input("\nVad vill du göra? \n")
     
     if spel_val == "ta nyckel" and "ta nyckel" in aktuellt_rum.val_föremål:
         har_nyckel = True
         del aktuellt_rum.val_föremål["ta nyckel"]
-        print_colored("Du tog nyckeln.", "1;32")  # Grön text
+        print_colored("Du tar upp nyckeln", "1;32")  # Grön text
+
+        if "öppna dörr" not in aktuellt_rum.val_rum:
+            aktuellt_rum.lägg_till_förflyttnings_val("öppna dörr", korridor)
+
     elif spel_val == "öppna dörr" and not har_nyckel:
         print_colored("Dörren är låst. Du behöver en nyckel.", "1;31")  # Röd text
+
+    elif spel_val in aktuellt_rum.val_sök:
+        del aktuellt_rum.val_sök[spel_val]
+        start_rum.lägg_till_rum_val("ta nyckel", nyckel.namn_föremål)
+        print_colored(f"Du hittar {nyckel.namn_föremål}", "1;32")
+
     else:
         nästa_rum = aktuellt_rum.gå_till(spel_val)
         if nästa_rum:
             aktuellt_rum = nästa_rum
         else:
             print_colored("Ogiltigt val. Försök igen.", "1;31")  # Röd text
+            
+    
+        
 # -------------------------Spel loop------------------------- #
