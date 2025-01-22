@@ -1,8 +1,11 @@
+import random
+import Uppgift2.gladiator as gladiator
+
 class Rum:
     def __init__(self, namn, beskrivning):
         self.namn = namn
         self.beskrivning = beskrivning
-        self.val_rum = {}  # Lista för förflyt val
+        self.val_rum = {}
         self.val_föremål = {}
         self.val_sök = {}
 
@@ -24,29 +27,25 @@ class Föremål:
         self.namn_föremål = namn_föremål
         self.beskrivning_föremål = beskrivning_föremål
 
-# Variabler för varje rum [NAMN, BESKRIVNING]
 start_rum = Rum("Start", "Du är i en mörk cell. Dörren är låst.")
 korridor = Rum("Korridor", "En lång och smal korridor.")
 vakt_rum = Rum("Vaktrum", "Du ser en vakt. Han verkar sova.")
 korridor_2 = Rum("Korridor 2", "Du fortsätter utifrån vaktrummet till ännu en korridor.")
 slut_rum = Rum("slutet", "Du har klarat av spelet")
 
-# Skapa nyckel föremål
 nyckel = Föremål("Nyckel", "En rostig nyckel som kanske öppnar dörren.")
 paper = Föremål("papper", "En bit papper med en kod på")
 
-# Lägg till nyckel till start rummet
 start_rum.lägg_till_sök_val("kolla runt i rummet")
 
-# korrdior förflyt val
+vakt_rum.lägg_till_rum_val("Attackera vakten")
+
 korridor.lägg_till_förflyttnings_val("gå till vaktrum", vakt_rum)
 korridor.lägg_till_förflyttnings_val("gå tillbaka", start_rum)
 
-# vaktrum förflyt val
 vakt_rum.lägg_till_förflyttnings_val("gå till korridor", korridor_2)
 vakt_rum.lägg_till_förflyttnings_val("gå tillbaka", korridor)
 
-# korridor 2 förflyt val
 korridor_2.lägg_till_förflyttnings_val("gå tillbaka", vakt_rum)
 korridor_2.lägg_till_förflyttnings_val("gå ut", slut_rum)
 
@@ -77,13 +76,60 @@ def visa_spel_val(aktuellt_rum):
     return input("\nVad vill du göra? \n")
 
 def spara_variabler():
-    return
+    data = [
+        aktuellt_rum.namn,
+        har_nyckel,
+        "kolla runt i rummet" not in start_rum.val_sök
+    ]
+    data = ', '.join(str(v) for v in data)
+    with open("storage.txt", "w") as fil:
+        fil.write(data)
+    print_colored("Spelet har sparats!", "1;32")
+    
+def ladda_variabler():
+    try:
+        with open("storage.txt", "r") as fil:
+            data = fil.read()
+            data = data.split(", ")
+            for v in data:
+                if v == "True":
+                    data[data.index(v)] = True
+                elif v == "False":
+                    data[data.index(v)] = False
+                    
+        rum_mappning = {
+            "Start": start_rum,
+            "Korridor": korridor,
+            "Vaktrum": vakt_rum,
+            "Korridor 2": korridor_2,
+            "slutet": slut_rum
+        }
+        
+        laddat_rum = rum_mappning[data[0]]
+        har_kollat = data[2]
+        
+        if har_kollat:
+            start_rum.val_sök.clear()
+            if not data[1]:  # Om spelaren inte har nyckeln
+                start_rum.lägg_till_rum_val("ta nyckel", nyckel.namn_föremål)
+                
+        if data[1] and laddat_rum.namn == "Start":
+            if "öppna dörr" not in laddat_rum.val_rum:
+                laddat_rum.lägg_till_förflyttnings_val("öppna dörr", korridor)
+                
+        return laddat_rum, data[1]
+    except:
+        print_colored("Kunde inte ladda sparning.", "1;31")
+        return start_rum, False
 
-# -------------------------Spel loop------------------------- #
 Meny = True
 Spel = False
 aktuellt_rum = start_rum
 har_nyckel = False
+fight = False
+
+din_hälsa = 20
+fiende_hälsa = 10
 
 while True:
     while Meny:
@@ -93,7 +139,25 @@ while True:
             Meny = False
             Spel = True
         elif meny_val == "2":
-            print_colored("Inställningar är inte tillgängliga just nu.", "1;31")
+            while True:
+                print("\n" + "="*50)
+                print_colored("1. Spara", "1;32")
+                print_colored("2. Ladda", "1;32")
+                print_colored("3. Återgå till huvudmeny", "1;32")
+                
+                val = input("\nVälj ett alternativ: ")
+                if val == "1":
+                    spara_variabler()
+                elif val == "2":
+                    loaded_rum, loaded_nyckel = ladda_variabler()
+                    aktuellt_rum = loaded_rum
+                    har_nyckel = loaded_nyckel
+                    print_colored("Spelet har laddats!", "1;32")
+                elif val == "3":
+                    break
+                else:
+                    print_colored("Ogiltigt val.", "1;31")
+
         elif meny_val == "3":
             print_colored("Avslutar spelet...", "1;31")
             exit()
@@ -123,6 +187,22 @@ while True:
             del aktuellt_rum.val_sök[spel_val]
             start_rum.lägg_till_rum_val("ta nyckel", nyckel.namn_föremål)
             print_colored(f"Du hittar {nyckel.namn_föremål}", "1;32")
+
+        elif spel_val == "Attackera vakten" and aktuellt_rum == vakt_rum:
+            fight = True
+            while fight:
+                if din_hälsa > 0:
+                    print(f"\nDin hälsa: {din_hälsa}")
+                    print(f"Vaktens hälsa: {fiende_hälsa}")
+                    gladiator.din_attack()
+                    gladiator.fiende_attack()
+                elif din_hälsa <= 0:
+                    print_colored("Du dog. Spelet är över.", "1;31")
+                    Spel = False
+                elif fiende_hälsa <= 0:
+                    print_colored("Du vann! Vakten är död.", "1;32")
+                    vakt_rum.lägg_till_förflyttnings_val("gå till korridor", korridor_2)
+                    fight = False
 
         else:
             nästa_rum = aktuellt_rum.gå_till(spel_val)
