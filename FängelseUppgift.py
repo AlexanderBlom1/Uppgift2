@@ -1,5 +1,7 @@
 import random
-import Uppgift2.gladiator as gladiator
+from gladiator import din_attack, fiende_attack
+
+
 
 class Rum:
     def __init__(self, namn, beskrivning):
@@ -194,8 +196,8 @@ while True:
                 if din_hälsa > 0:
                     print(f"\nDin hälsa: {din_hälsa}")
                     print(f"Vaktens hälsa: {fiende_hälsa}")
-                    gladiator.din_attack()
-                    gladiator.fiende_attack()
+                    din_attack()
+                    fiende_attack()
                 elif din_hälsa <= 0:
                     print_colored("Du dog. Spelet är över.", "1;31")
                     Spel = False
