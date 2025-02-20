@@ -1,0 +1,5 @@
+Aktuellt rum: Korridor
+Har nyckel: True
+Rum undersökt: True
+Vakt besegrad: False
+Dörr upplåst: True
